@@ -1,5 +1,11 @@
 # Code guide
 
+`Dockerfile` installs locked runtime dependencies and starts Streamlit on port 8501
+as a non-root user. `.dockerignore` excludes credentials, data, trained artifacts,
+Git history, and caches. Mount `/app/data` and `/app/artifacts` for persistence.
+The README documents container training and serving. Linux uses CPU-only PyTorch
+without changing the native macOS dependency source.
+
 Read `data.py`, `model.py`, `pipeline.py`, `evaluation.py`, `recommend.py`, then `app.py`.
 
 The CLI creates artifacts; the dashboard loads them and adapts temporary viewers.

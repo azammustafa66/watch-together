@@ -37,6 +37,42 @@ The CLI accepts `--root PATH` for a different data/artifact directory. The dashb
 the artifacts in its own checkout. After replacing data or rebuilding the catalog, retrain
 and reevaluate. Do not run training concurrently with dashboard use.
 
+## Docker
+
+From this project directory, with Docker Desktop or a running Docker engine:
+
+```bash
+docker build -t watch-together:local .
+mkdir -p data artifacts
+docker run --rm -p 127.0.0.1:8503:8501 \
+  --mount type=bind,src="$(pwd)/data",dst=/app/data \
+  --mount type=bind,src="$(pwd)/artifacts",dst=/app/artifacts \
+  watch-together:local
+```
+
+Open <http://localhost:8503>. Stop the existing local dashboard first if that port is in use,
+or choose another host port before `:8501`. The image runs Streamlit as a non-root user.
+Mount the existing folders to reuse your data and models. An empty artifact folder shows
+setup instructions instead of recommendations.
+
+To prepare MovieLens and train **inside the container**:
+
+```bash
+docker run --rm \
+  --mount type=bind,src="$(pwd)/data",dst=/app/data \
+  --mount type=bind,src="$(pwd)/artifacts",dst=/app/artifacts \
+  watch-together:local watch-together all
+```
+
+The first preparation run downloads the dataset. Training and inference run on CPU.
+Linux installations use CPU-only PyTorch wheels, while the native macOS dependency source
+is unchanged. If Linux bind mounts reject writes, add
+`--user "$(id -u):$(id -g)" -e HOME=/tmp` to `docker run`.
+
+`Dockerfile` installs locked runtime dependencies and defines the startup and health check.
+`.dockerignore` excludes credentials, Git history, virtual environments, data, model artifacts,
+and caches. Neither MovieLens data nor model weights are baked into or downloaded during builds.
+
 ## Using the app
 
 1. Choose **Individual** or **Group**, with two or three viewers.
